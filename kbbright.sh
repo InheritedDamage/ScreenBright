@@ -23,11 +23,13 @@
  #                                                                      #
  #  Parameter:   -p   percentage flag, needs a value [0,100]%           #
  #               -h   print help                                        #
+ #               -inc increases the brightness by 10%                   #
+ #               -dec decreases the brightness by 10%                   #
  #               min  set keyboard backlight brightness to minimum      #
  #               max  set keyboard backlight brightness to maximum      # 
  #                                                                      #
  #  Usage:       kbbright -h                                            #
- #               kbbright [value(min-max)|min|max|-p value(0-100)]      #
+ #               kbbright [value(min-max)|-p value(0-100)|-inc|-dec]    #
  #                                                                      #
  ########################################################################
 
@@ -51,10 +53,13 @@ function print_help {
 	echo " Author: Dennis Zajonz (InheritedDamage)   Version: 1.0.0 (15-03-2021)"
 	echo " Parameter:   -p    percentage flag, needs a value [0,100]%"
 	echo "              -h    print this help"
+	echo "              -inc  increases the brightness by 10%"
+        echo "              -dec  decreases the brightness by 10%"
 	echo "              min   set keyboard background brightness to minimum"
 	echo "              max   set keyboard background brightness to maximum"
 	echo " Usage:       kbbright -h"
-	echo "              kbbright [value($MIN-$MAX)|min|max|-p value(0-100)]"
+	echo "              kbbright [value($MIN-$MAX)|min|max|-p value(0-100)|"
+	echo "              -inc|-dec]"
 	echo ""
 }
 
@@ -69,6 +74,19 @@ if [ $# -eq 1 ]; then
 	if [ $1 = "min" ]; then echo $MIN > $BRIGHTNESSPATH
 	elif [ $1 = "max" ]; then echo $MAX > $BRIGHTNESSPATH
 	elif [ $1 = "-h" ]; then print_help
+	elif [ $1 = "-inc" -o $1 = "-dec" ]; then
+                val=$(head -n 1 $BRIGHTNESSPATH)
+                if [ $val -gt $MAX ]; then val=$MAX; fi
+                step=$(($DIFF*10/100))
+                if [ $1 = "-dec" ]; then
+                        newval=$(($val-$step))
+                        if [ $newval -lt $MIN ]; then newval=$MIN; fi
+                        echo $newval > $BRIGHTNESSPATH
+                else
+                        newval=$(($val+$step))
+                        if [ $newval -gt $MAX ]; then newval=$MAX; fi
+                        echo $newval > $BRIGHTNESSPATH
+                fi
 	elif [[ "$1" =~ [a-zA-Z]+ ]]; then
 		echo "Error: Value $1 not a number."
 		exit 1
